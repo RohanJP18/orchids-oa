@@ -1,0 +1,1 @@
+router.get('/recentlyPlayedSongs/:userId', async (req, res) => { const recentlyPlayedSongs = await db.query('SELECT * FROM RecentlyPlayedSongs WHERE userId = ?', [req.params.userId]); res.json(recentlyPlayedSongs); });

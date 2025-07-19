@@ -1,0 +1,1 @@
+const songs = require('../data/songs.json'); songs.forEach(song => { fetch('/api/songs/recently-played', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(song) }); });

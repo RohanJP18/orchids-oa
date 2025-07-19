@@ -1,0 +1,1 @@
+const recentlyPlayedData = [{ song_id: 1, user_id: 1, played_at: new Date() }, ...]; RecentlyPlayed.bulkCreate(recentlyPlayedData); // Repeat for other tables

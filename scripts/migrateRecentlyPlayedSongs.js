@@ -1,0 +1,1 @@
+const hardcodedSongs = [...]; hardcodedSongs.forEach(song => { db.query('INSERT INTO RecentlyPlayedSongs (songId, userId, lastPlayedAt) VALUES (?, ?, ?)', [song.id, song.userId, new Date()]); });

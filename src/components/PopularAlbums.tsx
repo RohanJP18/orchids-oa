@@ -1,0 +1,1 @@
+useEffect(() => { fetch('/api/recently_played').then(response => response.json()).then(data => setRecentlyPlayed(data)); }, []); useEffect(() => { fetch('/api/made_for_you').then(response => response.json()).then(data => setMadeForYou(data)); }, []); useEffect(() => { fetch('/api/popular_albums').then(response => response.json()).then(data => setPopularAlbums(data)); }, []);
