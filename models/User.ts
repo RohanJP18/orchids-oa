@@ -29,3 +29,5 @@ export default class Song extends Model {
   };
   static playlist = this.belongsTo(Playlist, 'playlistId');
 }
+
+User.hasMany('favorites', {as: 'favorites'}); Song.belongsTo('User', {as: 'favoritedBy', foreignKey: 'user_id'});

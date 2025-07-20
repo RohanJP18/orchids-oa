@@ -1,0 +1,1 @@
+import { NextApiRequest, NextApiResponse } from 'next'; //... implement handlers for GET, POST, DELETE

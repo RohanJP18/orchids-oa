@@ -293,11 +293,10 @@ program
 program.addHelpText('after', `
 
 ${orchids.primary.bold('Examples:')}
+  $ orchids                                    # Start interactive mode (recommended)
   $ orchids query "Can you store the recently played songs in a table"
-  $ orchids query -i
   $ orchids setup
   $ orchids status
-  $ orchids interactive
 
 ${orchids.muted('For more information, visit: https://github.com/RohanJP18/orchids-oa')}
 `)
@@ -313,7 +312,58 @@ program.helpInformation = function() {
 // If no command is provided, run interactive mode
 if (process.argv.length === 2) {
   ui.showBanner()
-  program.parse(['node', 'db-agent.js', 'interactive'])
+  // Run interactive mode directly
+  const runInteractive = async () => {
+    try {
+      const agent = new DatabaseAgent()
+      
+      while (true) {
+        const query = await ui.interactivePrompt()
+        
+        ui.section('QUERY ANALYSIS')
+        console.log(orchids.white(`  Query: ${orchids.primary.bold(query)}`))
+        
+        await agent.processQuery(query, ui)
+        
+        ui.complete()
+        
+        // Ask if user wants to continue
+        const readline = require('readline')
+        const rl = readline.createInterface({
+          input: process.stdin,
+          output: process.stdout
+        })
+        
+        const continue_ = await new Promise((resolve) => {
+          rl.question(`${orchids.accent('🤖')} ${orchids.primary('Would you like to run another query? (y/n)')} `, (answer) => {
+            rl.close()
+            resolve(answer.toLowerCase().startsWith('y'))
+          })
+        })
+        
+        if (!continue_) {
+          console.log(orchids.muted('  Thanks for using Orchids Database Agent! 👋'))
+          break
+        }
+        
+        // Clear screen and show banner again
+        ui.showBanner()
+      }
+      
+    } catch (error) {
+      if (error.message === 'User force closed the prompt with 0 null bytes.') {
+        console.log(orchids.muted('  Thanks for using Orchids Database Agent! 👋'))
+        return
+      }
+      
+      ui.errorBanner('Operation failed')
+      console.log(orchids.error(`  Error: ${error.message}`))
+      console.log('')
+      process.exit(1)
+    }
+  }
+  
+  runInteractive()
 } else {
   program.parse()
 } 

@@ -1,0 +1,1 @@
+fetch('/api/favorites').then(res => res.json()).then(data => setFavorites(data)); //... implement POST and DELETE requests
