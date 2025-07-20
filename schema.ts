@@ -1,0 +1,1 @@
+const UserPlaylist = schema.createTable('UserPlaylist', table => { table.increments('id'); table.string('name'); table.integer('userId').references('users.id'); });

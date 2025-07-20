@@ -1,1 +1,0 @@
-router.post('/recently-played', (req, res) => { const { song_name, artist_name, album_name } = req.body; const song = new Song({ song_name, artist_name, album_name }); song.save(); res.json(song); });

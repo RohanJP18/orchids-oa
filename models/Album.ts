@@ -1,3 +1,0 @@
-In Song.ts: export default class Song extends Model { static table = 'songs'; static timestamps = true; id: number; title: string; artist: string; album: string; duration: number; }
-In Playlist.ts: export default class Playlist extends Model { static table = 'playlists'; static timestamps = true; id: number; name: string; songs: Song[]; }
-In Album.ts: export default class Album extends Model { static table = 'albums'; static timestamps = true; id: number; name: string; artist: string; songs: Song[]; }

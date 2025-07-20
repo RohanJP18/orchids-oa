@@ -1,1 +1,0 @@
-fetch('/api/recentlyPlayed', { method: 'POST', body: JSON.stringify({ songId: this.state.currentSongId, userId: this.state.currentUser.id }) });
