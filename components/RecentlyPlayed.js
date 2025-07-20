@@ -1,0 +1,1 @@
+fetch('/api/recentlyPlayed').then(res => res.json()).then(data => this.setState({ recentlyPlayed: data }));

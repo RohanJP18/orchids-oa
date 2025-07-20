@@ -6,52 +6,107 @@ const chalk = require('chalk')
 const OpenAI = require('openai')
 
 class DatabaseAgent {
-  constructor() {
+  constructor(verbose = false) {
     this.openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     })
     this.projectRoot = process.cwd()
     this.context = {}
+    this.verbose = verbose
   }
 
-  async setup() {
-    console.log(chalk.yellow('📊 Setting up database...'))
+  async setup(ui, options = {}) {
+    ui.section('PROJECT ANALYSIS')
+    ui.action('Analyzing project structure and dependencies...')
     
     // Install dependencies if not already installed
     try {
-      execSync('npm install', { stdio: 'inherit' })
+      ui.action('Installing project dependencies...')
+      execSync('npm install', { stdio: this.verbose ? 'inherit' : 'pipe' })
+      ui.success('Dependencies installed successfully')
     } catch (error) {
-      console.log(chalk.yellow('⚠️  Some dependencies may already be installed'))
+      ui.warning('Some dependencies may already be installed')
     }
 
     // Generate database schema
     try {
-      execSync('npm run db:generate', { stdio: 'inherit' })
-      console.log(chalk.green('✅ Database schema generated'))
+      ui.action('Generating database schema...')
+      execSync('npm run db:generate', { stdio: this.verbose ? 'inherit' : 'pipe' })
+      ui.success('Database schema generated')
     } catch (error) {
-      console.log(chalk.yellow('⚠️  Schema generation failed, will create manually'))
+      ui.warning('Schema generation failed, will create manually')
     }
 
     // Run migrations
     try {
-      execSync('npm run db:migrate', { stdio: 'inherit' })
-      console.log(chalk.green('✅ Database migrations completed'))
+      ui.action('Running database migrations...')
+      execSync('npm run db:migrate', { stdio: this.verbose ? 'inherit' : 'pipe' })
+      ui.success('Database migrations completed')
     } catch (error) {
-      console.log(chalk.yellow('⚠️  Migration failed, will handle manually'))
+      ui.warning('Migration failed, will handle manually')
     }
+
+    ui.success('Project setup completed successfully')
   }
 
-  async processQuery(query) {
-    console.log(chalk.blue('🔍 Analyzing project structure...'))
+  async getStatus(ui) {
+    ui.section('DATABASE STATUS')
+    
+    const dbFile = path.join(this.projectRoot, 'spotify.db')
+    if (fs.existsSync(dbFile)) {
+      const stats = fs.statSync(dbFile)
+      ui.success(`Database file exists: ${(stats.size / 1024).toFixed(2)} KB`)
+      
+      try {
+        const Database = require('better-sqlite3')
+        const db = new Database(dbFile)
+        const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all()
+        ui.info(`Tables found: ${tables.length}`)
+        
+        tables.forEach(table => {
+          try {
+            const count = db.prepare(`SELECT COUNT(*) as count FROM ${table.name}`).get()
+            ui.info(`${table.name}: ${count.count} rows`)
+          } catch (error) {
+            ui.warning(`${table.name}: Error reading count`)
+          }
+        })
+        db.close()
+      } catch (error) {
+        ui.error(`Could not connect to database: ${error.message}`)
+      }
+    } else {
+      ui.warning('Database file does not exist')
+    }
+
+    ui.section('API ROUTES')
+    const apiRoutes = [
+      'src/app/api/recently-played/route.ts',
+      'src/app/api/made-for-you/route.ts',
+      'src/app/api/popular-albums/route.ts'
+    ]
+    
+    apiRoutes.forEach(route => {
+      if (fs.existsSync(route)) {
+        ui.success(route)
+      } else {
+        ui.warning(`${route} (missing)`)
+      }
+    })
+  }
+
+  async processQuery(query, ui) {
+    ui.section('PROJECT ANALYSIS')
+    ui.thinking('Analyzing project structure and current state...')
     await this.analyzeProject()
     
-    console.log(chalk.blue('🤔 Processing query with AI...'))
+    ui.section('AI PROCESSING')
+    ui.thinking('Processing your query with AI to generate implementation plan...')
     const plan = await this.generatePlan(query)
     
-    console.log(chalk.blue('🚀 Executing plan...'))
-    await this.executePlan(plan)
-    
-    console.log(chalk.green('✅ Query completed successfully!'))
+    ui.section('IMPLEMENTATION')
+    ui.processing('Executing the generated plan...')
+    await this.executePlan(plan, ui)
   }
 
   async analyzeProject() {
@@ -157,17 +212,16 @@ Format your response as a JSON object with the following structure:
     return JSON.parse(response)
   }
 
-  async executePlan(plan) {
+  async executePlan(plan, ui) {
     for (const step of plan.steps) {
-      console.log(chalk.cyan(`📝 Step ${step.step}: ${step.action}`))
+      ui.step(step.step, step.action)
       
       for (const file of step.files) {
-        console.log(chalk.gray(`   Editing: ${file}`))
+        ui.file(file)
         await this.modifyFile(file, step.code)
       }
       
-      console.log(chalk.green(`   ✅ Step ${step.step} completed`))
-      console.log('')
+      ui.success(`Step ${step.step} completed`)
     }
   }
 
